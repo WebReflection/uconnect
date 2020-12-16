@@ -10,8 +10,21 @@
     '../esm/index.js' :
     'https://unpkg.com/uconnect?module'
   )
-  .then((module) => {
-    console.log(module);
+  .then(({observe}) => {
+    const observer = observe(document.body);
+    const div = document.createElement('div');
+    observer.connect(div, {
+      connected() {
+        console.log('connected');
+      },
+      disconnected() {
+        console.log('disconnected');
+        observer.kill();
+        document.body.textContent = 'it works 🎉';
+      }
+    });
+    document.body.append(div);
+    setTimeout(div.remove.bind(div), 100);
   });
   </script>
 </head>

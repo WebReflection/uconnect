@@ -23,18 +23,18 @@ const listener = (node, call, handler) => {
   node[call + EVENT_LISTENER](DISCONNECTED, handler);
 };
 
-const notifyObserved = (nodes, type, wmin, wmout) => {
+const notifyObserved = (nodes, type, observed, wmin, wmout) => {
   for (let {length} = nodes, i = 0; i < length; i++)
-    notifyTarget(nodes[i], type, wmin, wmout);
+    notifyTarget(nodes[i], type, observed, wmin, wmout);
 };
 
-const notifyTarget = (node, type, wmin, wmout) => {
+const notifyTarget = (node, type, observed, wmin, wmout) => {
   if (observed.has(node) && !wmin.has(node)) {
     wmout.delete(node);
     wmin.set(node, 0);
     node.dispatchEvent(new CustomEvent(type));
   }
-  notifyObserved(node.children || [], type, wmin, wmout);
+  notifyObserved(node.children || [], type, observed, wmin, wmout);
 };
 
 /**
@@ -51,8 +51,8 @@ const observe = (root = document, MO = MutationObserver) => {
   const mo = new MO(nodes => {
     for (let {length} = nodes, i = 0; i < length; i++) {
       const {removedNodes, addedNodes} = nodes[i];
-      notifyObserved(removedNodes, DISCONNECTED, wmout, wmin);
-      notifyObserved(addedNodes, CONNECTED, wmin, wmout);
+      notifyObserved(removedNodes, DISCONNECTED, observed, wmout, wmin);
+      notifyObserved(addedNodes, CONNECTED, observed, wmin, wmout);
     }
   });
   mo.observe(root, {subtree: true, childList: true});

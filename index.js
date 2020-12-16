@@ -38,20 +38,20 @@ self.uconnect = (function (exports) {
     node[call + EVENT_LISTENER](DISCONNECTED, handler);
   };
 
-  var notifyObserved = function notifyObserved(nodes, type, wmin, wmout) {
+  var notifyObserved = function notifyObserved(nodes, type, observed, wmin, wmout) {
     for (var length = nodes.length, i = 0; i < length; i++) {
-      notifyTarget(nodes[i], type, wmin, wmout);
+      notifyTarget(nodes[i], type, observed, wmin, wmout);
     }
   };
 
-  var notifyTarget = function notifyTarget(node, type, wmin, wmout) {
+  var notifyTarget = function notifyTarget(node, type, observed, wmin, wmout) {
     if (observed.has(node) && !wmin.has(node)) {
       wmout["delete"](node);
       wmin.set(node, 0);
       node.dispatchEvent(new CustomEvent$1(type));
     }
 
-    notifyObserved(node.children || [], type, wmin, wmout);
+    notifyObserved(node.children || [], type, observed, wmin, wmout);
   };
   /**
    * Attach a MutationObserver to a generic node and returns a UConnect instance.
@@ -73,8 +73,8 @@ self.uconnect = (function (exports) {
         var _nodes$i = nodes[i],
             removedNodes = _nodes$i.removedNodes,
             addedNodes = _nodes$i.addedNodes;
-        notifyObserved(removedNodes, DISCONNECTED, wmout, wmin);
-        notifyObserved(addedNodes, CONNECTED, wmin, wmout);
+        notifyObserved(removedNodes, DISCONNECTED, observed, wmout, wmin);
+        notifyObserved(addedNodes, CONNECTED, observed, wmin, wmout);
       }
     });
     mo.observe(root, {
