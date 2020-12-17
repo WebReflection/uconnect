@@ -48,6 +48,7 @@ const observe = (root = document, MO = MutationObserver) => {
   // these two should be WeakSet but IE11 happens
   const wmin = new WeakMap;
   const wmout = new WeakMap;
+  const has = observed.has.bind(observed);
   const mo = new MO(nodes => {
     for (let {length} = nodes, i = 0; i < length; i++) {
       const {removedNodes, addedNodes} = nodes[i];
@@ -57,6 +58,7 @@ const observe = (root = document, MO = MutationObserver) => {
   });
   mo.observe(root, {subtree: true, childList: true});
   return {
+    has,
     connect(node, handler = {}) {
       if (!handler.handleEvent)
         handler.handleEvent = handleEvent;
@@ -64,7 +66,7 @@ const observe = (root = document, MO = MutationObserver) => {
       observed.set(node, handler);
     },
     disconnect(node) {
-      if (observed.has(node)) {
+      if (has(node)) {
         listener(node, 'remove', observed.get(node));
         observed.delete(node);
       }
