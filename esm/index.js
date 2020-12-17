@@ -33,7 +33,7 @@ const notifyTarget = (node, type, observed, wmin, wmout) => {
     wmin.set(node, 0);
     node.dispatchEvent(new CustomEvent(type));
   }
-  notifyObserved(node.children || [], type, observed, wmin, wmout);
+  notifyObserved(node.childNodes, type, observed, wmin, wmout);
 };
 
 /**

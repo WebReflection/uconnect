@@ -51,7 +51,7 @@ self.uconnect = (function (exports) {
       node.dispatchEvent(new CustomEvent$1(type));
     }
 
-    notifyObserved(node.children || [], type, observed, wmin, wmout);
+    notifyObserved(node.childNodes, type, observed, wmin, wmout);
   };
   /**
    * Attach a MutationObserver to a generic node and returns a UConnect instance.

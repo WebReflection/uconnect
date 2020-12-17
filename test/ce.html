@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script>
+    customElements.define('outer-component', class extends HTMLElement {
+      connectedCallback() {
+        console.log(this.localName);
+      }
+    });
+    customElements.define('inner-component', class extends HTMLElement {
+      connectedCallback() {
+        console.log(this.localName);
+      }
+    });
+  </script>
+</head>
+<body>
+  <outer-component>
+    <inner-component></inner-component>
+  </outer-component>
+</body>
+</html>
