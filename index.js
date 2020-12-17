@@ -81,8 +81,8 @@ self.uconnect = (function (exports) {
         var _nodes$i = nodes[i],
             removedNodes = _nodes$i.removedNodes,
             addedNodes = _nodes$i.addedNodes;
-        notifyObserved(removedNodes, DISCONNECTED, observed, wmout);
-        notifyObserved(addedNodes, CONNECTED, observed, wmin);
+        notifyObserved(removedNodes, DISCONNECTED, wmout, wmin);
+        notifyObserved(addedNodes, CONNECTED, wmin, wmout);
       }
     });
     mo.observe(root, {

@@ -73,8 +73,8 @@ const observe = (
   const mo = new MO(nodes => {
     for (let {length} = nodes, i = 0; i < length; i++) {
       const {removedNodes, addedNodes} = nodes[i];
-      notifyObserved(removedNodes, DISCONNECTED, observed, wmout, wmin);
-      notifyObserved(addedNodes, CONNECTED, observed, wmin, wmout);
+      notifyObserved(removedNodes, DISCONNECTED, wmout, wmin);
+      notifyObserved(addedNodes, CONNECTED, wmin, wmout);
     }
   });
   mo.observe(root, {subtree: true, childList: true});
