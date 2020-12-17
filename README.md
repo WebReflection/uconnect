@@ -8,7 +8,8 @@ import {observe} from 'uconnect';
 const observer = observe(
   root = document,      // the default root node to observe
   parse = 'childNodes', // the kind of nodes to parse: childNodes/children
-  MO = MutationObserver // the default MutationObserver to use
+  CE = CustomEvent      // the default Event/CustomEvent constructor to use
+  MO = MutationObserver // the default MutationObserver constructor to use
 );
 
 observe.connect(node, {

@@ -1,21 +1,6 @@
 self.uconnect = (function (exports) {
   'use strict';
 
-  /*! (c) Andrea Giammarchi - ISC */
-  var self = {};
-  self.CustomEvent = typeof CustomEvent === 'function' ? CustomEvent : function (__p__) {
-    CustomEvent[__p__] = new CustomEvent('').constructor[__p__];
-    return CustomEvent;
-
-    function CustomEvent(type, init) {
-      if (!init) init = {};
-      var e = document.createEvent('CustomEvent');
-      e.initCustomEvent(type, !!init.bubbles, !!init.cancelable, init.detail);
-      return e;
-    }
-  }('prototype');
-  var CustomEvent$1 = self.CustomEvent;
-
   /**
    * @typedef {Object} Handler an object that handle events.
    * @property {(event: Event) => void} connected an optional method triggered when node is connected.
@@ -28,7 +13,6 @@ self.uconnect = (function (exports) {
    * @property {(node: Node) => void} disconnect a method to stop observing a generic Node.
    * @property {() => void} kill a method to kill/disconnect the MutationObserver.
    */
-
   var CONNECTED = 'connected';
   var DISCONNECTED = 'disconnected';
   var EVENT_LISTENER = 'EventListener';
@@ -41,6 +25,7 @@ self.uconnect = (function (exports) {
    * Attach a MutationObserver to a generic node and returns a UConnect instance.
    * @param {Node} root a DOM node to observe for mutations.
    * @param {string} parse the kind of nodes to parse: childNodes, by default, or children.
+   * @param {Event} CE an Event/CustomEvent constructor (polyfilled in SSR).
    * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
    * @returns {UConnect} an utility to connect or disconnect nodes to observe.
    */
@@ -49,7 +34,8 @@ self.uconnect = (function (exports) {
   var observe = function observe() {
     var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
     var parse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'childNodes';
-    var MO = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : MutationObserver;
+    var CE = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : CustomEvent;
+    var MO = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : MutationObserver;
     var observed = new WeakMap(); // these two should be WeakSet but IE11 happens
 
     var wmin = new WeakMap();
@@ -84,7 +70,7 @@ self.uconnect = (function (exports) {
       if (has(node) && !wmin.has(node)) {
         wmout["delete"](node);
         wmin.set(node, 0);
-        node.dispatchEvent(new CustomEvent$1(type));
+        node.dispatchEvent(new CE(type));
       }
 
       notifyObserved(node[parse] || [], type, wmin, wmout);

@@ -1,6 +1,4 @@
 'use strict';
-const CustomEvent = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('@ungap/custom-event'));
-
 /**
  * @typedef {Object} Handler an object that handle events.
  * @property {(event: Event) => void} connected an optional method triggered when node is connected.
@@ -27,12 +25,14 @@ const listener = (node, call, handler) => {
  * Attach a MutationObserver to a generic node and returns a UConnect instance.
  * @param {Node} root a DOM node to observe for mutations.
  * @param {string} parse the kind of nodes to parse: childNodes, by default, or children.
+ * @param {Event} CE an Event/CustomEvent constructor (polyfilled in SSR).
  * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
  * @returns {UConnect} an utility to connect or disconnect nodes to observe.
  */
 const observe = (
   root = document,
   parse = 'childNodes',
+  CE = CustomEvent,
   MO = MutationObserver
 ) => {
   const observed = new WeakMap;
@@ -65,7 +65,7 @@ const observe = (
     if (has(node) && !wmin.has(node)) {
       wmout.delete(node);
       wmin.set(node, 0);
-      node.dispatchEvent(new CustomEvent(type));
+      node.dispatchEvent(new CE(type));
     }
     notifyObserved(node[parse] || [], type, wmin, wmout);
   };
