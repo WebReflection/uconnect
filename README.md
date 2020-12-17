@@ -12,7 +12,9 @@ const observer = observe(
   MO = MutationObserver // the default MutationObserver constructor to use
 );
 
-observe.connect(node, {
+const node = document.createElement('button');
+
+observer.connect(node, {
   connected(event) {
     // node is connected
     console.log(`node is ${event.type}`);
@@ -30,13 +32,14 @@ setTimeout(() => {
   // will trigger disconnect(event)
   node.remove();
 
-  // will stop observing this specific node
-  // after removing connecetd/disconnected listeners
-  observer.disconnect(node);
+  setTimeout(() => {
+    // will stop observing this specific node
+    // after removing connecetd/disconnected listeners
+    observer.disconnect(node);
 
-  // will stop observing all nodes
-  // and disconnect the MutationObserver
-  observer.kill();
+    // will stop observing all nodes
+    // and disconnect the MutationObserver
+    observer.kill();
+  });
 });
-
 ```
