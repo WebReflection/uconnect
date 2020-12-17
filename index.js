@@ -24,7 +24,7 @@ self.uconnect = (function (exports) {
   /**
    * Attach a MutationObserver to a generic node and returns a UConnect instance.
    * @param {Node} root a DOM node to observe for mutations.
-   * @param {string} parse the kind of nodes to parse: childNodes, by default, or children.
+   * @param {string} parse the kind of nodes to parse: children, by default, or childNodes.
    * @param {Event} CE an Event/CustomEvent constructor (polyfilled in SSR).
    * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
    * @returns {UConnect} an utility to connect or disconnect nodes to observe.
@@ -33,7 +33,7 @@ self.uconnect = (function (exports) {
 
   var observe = function observe() {
     var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
-    var parse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'childNodes';
+    var parse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'children';
     var CE = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : CustomEvent;
     var MO = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : MutationObserver;
     var observed = new WeakMap(); // these two should be WeakSet but IE11 happens

@@ -24,14 +24,14 @@ const listener = (node, call, handler) => {
 /**
  * Attach a MutationObserver to a generic node and returns a UConnect instance.
  * @param {Node} root a DOM node to observe for mutations.
- * @param {string} parse the kind of nodes to parse: childNodes, by default, or children.
+ * @param {string} parse the kind of nodes to parse: children, by default, or childNodes.
  * @param {Event} CE an Event/CustomEvent constructor (polyfilled in SSR).
  * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
  * @returns {UConnect} an utility to connect or disconnect nodes to observe.
  */
 const observe = (
   root = document,
-  parse = 'childNodes',
+  parse = 'children',
   CE = CustomEvent,
   MO = MutationObserver
 ) => {
