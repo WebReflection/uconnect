@@ -44,10 +44,26 @@ const notifyTarget = (node, type, observed, wmin, wmout) => {
  */
 export const observe = (root = document, MO = MutationObserver) => {
   const observed = new WeakMap;
+
   // these two should be WeakSet but IE11 happens
   const wmin = new WeakMap;
   const wmout = new WeakMap;
-  const has = observed.has.bind(observed);
+
+  const has = node => observed.has(node);
+  const disconnect = node => {
+    if (has(node)) {
+      listener(node, 'remove', observed.get(node));
+      observed.delete(node);
+    }
+  };
+  const connect = (node, handler = {}) => {
+    disconnect(node);
+    if (!handler.handleEvent)
+      handler.handleEvent = handleEvent;
+    listener(node, 'add', handler);
+    observed.set(node, handler);
+  };
+
   const mo = new MO(nodes => {
     for (let {length} = nodes, i = 0; i < length; i++) {
       const {removedNodes, addedNodes} = nodes[i];
@@ -56,24 +72,8 @@ export const observe = (root = document, MO = MutationObserver) => {
     }
   });
   mo.observe(root, {subtree: true, childList: true});
-  return {
-    has,
-    connect(node, handler = {}) {
-      if (!handler.handleEvent)
-        handler.handleEvent = handleEvent;
-      listener(node, 'add', handler);
-      observed.set(node, handler);
-    },
-    disconnect(node) {
-      if (has(node)) {
-        listener(node, 'remove', observed.get(node));
-        observed.delete(node);
-      }
-    },
-    kill() {
-      mo.disconnect();
-    }
-  };
+
+  return {has, connect, disconnect, kill() { mo.disconnect(); }};
 };
 
 function handleEvent(event) {

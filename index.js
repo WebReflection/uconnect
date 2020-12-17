@@ -68,7 +68,26 @@ self.uconnect = (function (exports) {
 
     var wmin = new WeakMap();
     var wmout = new WeakMap();
-    var has = observed.has.bind(observed);
+
+    var has = function has(node) {
+      return observed.has(node);
+    };
+
+    var disconnect = function disconnect(node) {
+      if (has(node)) {
+        listener(node, 'remove', observed.get(node));
+        observed["delete"](node);
+      }
+    };
+
+    var connect = function connect(node) {
+      var handler = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      disconnect(node);
+      if (!handler.handleEvent) handler.handleEvent = handleEvent;
+      listener(node, 'add', handler);
+      observed.set(node, handler);
+    };
+
     var mo = new MO(function (nodes) {
       for (var length = nodes.length, i = 0; i < length; i++) {
         var _nodes$i = nodes[i],
@@ -84,18 +103,8 @@ self.uconnect = (function (exports) {
     });
     return {
       has: has,
-      connect: function connect(node) {
-        var handler = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-        if (!handler.handleEvent) handler.handleEvent = handleEvent;
-        listener(node, 'add', handler);
-        observed.set(node, handler);
-      },
-      disconnect: function disconnect(node) {
-        if (has(node)) {
-          listener(node, 'remove', observed.get(node));
-          observed["delete"](node);
-        }
-      },
+      connect: connect,
+      disconnect: disconnect,
       kill: function kill() {
         mo.disconnect();
       }
