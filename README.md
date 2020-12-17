@@ -1,5 +1,7 @@
 # <em>µ</em>connect
 
+<sup>**Social Media Photo by [JOHN TOWNER](https://unsplash.com/@heytowner) on [Unsplash](https://unsplash.com/)**</sup>
+
 A modern take at [disconnected](https://github.com/WebReflection/disconnected#readme) module, dropping IE < 11 support and providing a much better API.
 
 **[Live demo](https://codepen.io/WebReflection/pen/zYKwbgR?editors=0011)**
