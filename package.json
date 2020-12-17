@@ -1,6 +1,6 @@
 {
   "name": "uconnect",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An essential connected/disconnected DOM helper",
   "main": "./cjs/index.js",
   "scripts": {
