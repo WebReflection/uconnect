@@ -11,7 +11,7 @@
     'https://unpkg.com/uconnect?module'
   )
   .then(({observe}) => {
-    const observer = observe(document.body);
+    const observer = observe(document.body, 'children');
     const div = document.createElement('div');
     observer.connect(div, {
       connected() {

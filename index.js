@@ -37,33 +37,19 @@ self.uconnect = (function (exports) {
     node[call + EVENT_LISTENER](CONNECTED, handler);
     node[call + EVENT_LISTENER](DISCONNECTED, handler);
   };
-
-  var notifyObserved = function notifyObserved(nodes, type, observed, wmin, wmout) {
-    for (var length = nodes.length, i = 0; i < length; i++) {
-      notifyTarget(nodes[i], type, observed, wmin, wmout);
-    }
-  };
-
-  var notifyTarget = function notifyTarget(node, type, observed, wmin, wmout) {
-    if (observed.has(node) && !wmin.has(node)) {
-      wmout["delete"](node);
-      wmin.set(node, 0);
-      node.dispatchEvent(new CustomEvent$1(type));
-    }
-
-    notifyObserved(node.childNodes, type, observed, wmin, wmout);
-  };
   /**
    * Attach a MutationObserver to a generic node and returns a UConnect instance.
-   * @param {Node} root a DOM node to observe for mutations
-   * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR)
+   * @param {Node} root a DOM node to observe for mutations.
+   * @param {string} parse the kind of nodes to parse: childNodes, by default, or children.
+   * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
    * @returns {UConnect} an utility to connect or disconnect nodes to observe.
    */
 
 
   var observe = function observe() {
     var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
-    var MO = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : MutationObserver;
+    var parse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'childNodes';
+    var MO = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : MutationObserver;
     var observed = new WeakMap(); // these two should be WeakSet but IE11 happens
 
     var wmin = new WeakMap();
@@ -88,13 +74,29 @@ self.uconnect = (function (exports) {
       observed.set(node, handler);
     };
 
+    var notifyObserved = function notifyObserved(nodes, type, wmin, wmout) {
+      for (var length = nodes.length, i = 0; i < length; i++) {
+        notifyTarget(nodes[i], type, wmin, wmout);
+      }
+    };
+
+    var notifyTarget = function notifyTarget(node, type, wmin, wmout) {
+      if (has(node) && !wmin.has(node)) {
+        wmout["delete"](node);
+        wmin.set(node, 0);
+        node.dispatchEvent(new CustomEvent$1(type));
+      }
+
+      notifyObserved(node[parse] || [], type, wmin, wmout);
+    };
+
     var mo = new MO(function (nodes) {
       for (var length = nodes.length, i = 0; i < length; i++) {
         var _nodes$i = nodes[i],
             removedNodes = _nodes$i.removedNodes,
             addedNodes = _nodes$i.addedNodes;
-        notifyObserved(removedNodes, DISCONNECTED, observed, wmout, wmin);
-        notifyObserved(addedNodes, CONNECTED, observed, wmin, wmout);
+        notifyObserved(removedNodes, DISCONNECTED, observed, wmout);
+        notifyObserved(addedNodes, CONNECTED, observed, wmin);
       }
     });
     mo.observe(root, {

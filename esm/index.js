@@ -22,27 +22,18 @@ const listener = (node, call, handler) => {
   node[call + EVENT_LISTENER](DISCONNECTED, handler);
 };
 
-const notifyObserved = (nodes, type, observed, wmin, wmout) => {
-  for (let {length} = nodes, i = 0; i < length; i++)
-    notifyTarget(nodes[i], type, observed, wmin, wmout);
-};
-
-const notifyTarget = (node, type, observed, wmin, wmout) => {
-  if (observed.has(node) && !wmin.has(node)) {
-    wmout.delete(node);
-    wmin.set(node, 0);
-    node.dispatchEvent(new CustomEvent(type));
-  }
-  notifyObserved(node.childNodes, type, observed, wmin, wmout);
-};
-
 /**
  * Attach a MutationObserver to a generic node and returns a UConnect instance.
- * @param {Node} root a DOM node to observe for mutations
- * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR)
+ * @param {Node} root a DOM node to observe for mutations.
+ * @param {string} parse the kind of nodes to parse: childNodes, by default, or children.
+ * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
  * @returns {UConnect} an utility to connect or disconnect nodes to observe.
  */
-export const observe = (root = document, MO = MutationObserver) => {
+export const observe = (
+  root = document,
+  parse = 'childNodes',
+  MO = MutationObserver
+) => {
   const observed = new WeakMap;
 
   // these two should be WeakSet but IE11 happens
@@ -62,6 +53,20 @@ export const observe = (root = document, MO = MutationObserver) => {
       handler.handleEvent = handleEvent;
     listener(node, 'add', handler);
     observed.set(node, handler);
+  };
+
+  const notifyObserved = (nodes, type, wmin, wmout) => {
+    for (let {length} = nodes, i = 0; i < length; i++)
+      notifyTarget(nodes[i], type, wmin, wmout);
+  };
+  
+  const notifyTarget = (node, type, wmin, wmout) => {
+    if (has(node) && !wmin.has(node)) {
+      wmout.delete(node);
+      wmin.set(node, 0);
+      node.dispatchEvent(new CustomEvent(type));
+    }
+    notifyObserved(node[parse] || [], type, wmin, wmout);
   };
 
   const mo = new MO(nodes => {
