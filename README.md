@@ -2,13 +2,15 @@
 
 A modern take at [disconnected](https://github.com/WebReflection/disconnected#readme) module, dropping IE < 11 support and providing a much better API.
 
+**[Live demo](https://codepen.io/WebReflection/pen/zYKwbgR?editors=0011)**
+
 ```js
 import {observe} from 'uconnect';
 
 const observer = observe(
   root = document,      // the default root node to observe
   parse = 'children',   // the kind of nodes to parse: children or childNodes
-  CE = CustomEvent      // the default Event/CustomEvent constructor to use
+  CE = CustomEvent,     // the default Event/CustomEvent constructor to use
   MO = MutationObserver // the default MutationObserver constructor to use
 );
 
