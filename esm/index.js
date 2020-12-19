@@ -11,15 +11,6 @@
  * @property {() => void} kill a method to kill/disconnect the MutationObserver.
  */
 
-const CONNECTED = 'connected';
-const DISCONNECTED = 'disconnected';
-const EVENT_LISTENER = 'EventListener';
-
-const listener = (node, call, handler) => {
-  node[call + EVENT_LISTENER](CONNECTED, handler);
-  node[call + EVENT_LISTENER](DISCONNECTED, handler);
-};
-
 /**
  * Attach a MutationObserver to a generic node and returns a UConnect instance.
  * @param {Node} root a DOM node to observe for mutations.
@@ -28,12 +19,7 @@ const listener = (node, call, handler) => {
  * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
  * @returns {UConnect} an utility to connect or disconnect nodes to observe.
  */
-export const observe = (
-  root = document,
-  parse = 'children',
-  CE = CustomEvent,
-  MO = MutationObserver
-) => {
+export const observe = (root, parse, CE, MO) => {
   const observed = new WeakMap;
 
   // these two should be WeakSet but IE11 happens
@@ -43,40 +29,45 @@ export const observe = (
   const has = node => observed.has(node);
   const disconnect = node => {
     if (has(node)) {
-      listener(node, 'remove', observed.get(node));
+      listener(node, node.removeEventListener, observed.get(node));
       observed.delete(node);
     }
   };
-  const connect = (node, handler = {}) => {
+  const connect = (node, handler) => {
     disconnect(node);
-    if (!handler.handleEvent)
+    if (!(handler || (handler = {})).handleEvent)
       handler.handleEvent = handleEvent;
-    listener(node, 'add', handler);
+    listener(node, node.addEventListener, handler);
     observed.set(node, handler);
+  };
+
+  const listener = (node, method, handler) => {
+    method.call(node, 'disconnected', handler);
+    method.call(node, 'connected', handler);
   };
 
   const notifyObserved = (nodes, type, wmin, wmout) => {
     for (let {length} = nodes, i = 0; i < length; i++)
       notifyTarget(nodes[i], type, wmin, wmout);
   };
-  
+
   const notifyTarget = (node, type, wmin, wmout) => {
     if (has(node) && !wmin.has(node)) {
       wmout.delete(node);
       wmin.set(node, 0);
-      node.dispatchEvent(new CE(type));
+      node.dispatchEvent(new (CE || CustomEvent)(type));
     }
-    notifyObserved(node[parse] || [], type, wmin, wmout);
+    notifyObserved(node[parse || 'children'] || [], type, wmin, wmout);
   };
 
-  const mo = new MO(nodes => {
+  const mo = new (MO || MutationObserver)(nodes => {
     for (let {length} = nodes, i = 0; i < length; i++) {
       const {removedNodes, addedNodes} = nodes[i];
-      notifyObserved(removedNodes, DISCONNECTED, wmout, wmin);
-      notifyObserved(addedNodes, CONNECTED, wmin, wmout);
+      notifyObserved(removedNodes, 'disconnected', wmout, wmin);
+      notifyObserved(addedNodes, 'connected', wmin, wmout);
     }
   });
-  mo.observe(root, {subtree: true, childList: true});
+  mo.observe(root || document, {subtree: true, childList: true});
 
   return {has, connect, disconnect, kill() { mo.disconnect(); }};
 };
