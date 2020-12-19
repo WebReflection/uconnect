@@ -13,14 +13,7 @@ self.uconnect = (function (exports) {
    * @property {(node: Node) => void} disconnect a method to stop observing a generic Node.
    * @property {() => void} kill a method to kill/disconnect the MutationObserver.
    */
-  var CONNECTED = 'connected';
-  var DISCONNECTED = 'disconnected';
-  var EVENT_LISTENER = 'EventListener';
 
-  var listener = function listener(node, call, handler) {
-    node[call + EVENT_LISTENER](CONNECTED, handler);
-    node[call + EVENT_LISTENER](DISCONNECTED, handler);
-  };
   /**
    * Attach a MutationObserver to a generic node and returns a UConnect instance.
    * @param {Node} root a DOM node to observe for mutations.
@@ -29,13 +22,7 @@ self.uconnect = (function (exports) {
    * @param {MutationObserver} MO a MutationObserver constructor (polyfilled in SSR).
    * @returns {UConnect} an utility to connect or disconnect nodes to observe.
    */
-
-
-  var observe = function observe() {
-    var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : document;
-    var parse = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'children';
-    var CE = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : CustomEvent;
-    var MO = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : MutationObserver;
+  var observe = function observe(root, parse, CE, MO) {
     var observed = new WeakMap(); // these two should be WeakSet but IE11 happens
 
     var wmin = new WeakMap();
@@ -47,17 +34,21 @@ self.uconnect = (function (exports) {
 
     var disconnect = function disconnect(node) {
       if (has(node)) {
-        listener(node, 'remove', observed.get(node));
+        listener(node, node.removeEventListener, observed.get(node));
         observed["delete"](node);
       }
     };
 
-    var connect = function connect(node) {
-      var handler = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var connect = function connect(node, handler) {
       disconnect(node);
-      if (!handler.handleEvent) handler.handleEvent = handleEvent;
-      listener(node, 'add', handler);
+      if (!(handler || (handler = {})).handleEvent) handler.handleEvent = handleEvent;
+      listener(node, node.addEventListener, handler);
       observed.set(node, handler);
+    };
+
+    var listener = function listener(node, method, handler) {
+      method.call(node, 'disconnected', handler);
+      method.call(node, 'connected', handler);
     };
 
     var notifyObserved = function notifyObserved(nodes, type, wmin, wmout) {
@@ -70,22 +61,22 @@ self.uconnect = (function (exports) {
       if (has(node) && !wmin.has(node)) {
         wmout["delete"](node);
         wmin.set(node, 0);
-        node.dispatchEvent(new CE(type));
+        node.dispatchEvent(new (CE || CustomEvent)(type));
       }
 
-      notifyObserved(node[parse] || [], type, wmin, wmout);
+      notifyObserved(node[parse || 'children'] || [], type, wmin, wmout);
     };
 
-    var mo = new MO(function (nodes) {
+    var mo = new (MO || MutationObserver)(function (nodes) {
       for (var length = nodes.length, i = 0; i < length; i++) {
         var _nodes$i = nodes[i],
             removedNodes = _nodes$i.removedNodes,
             addedNodes = _nodes$i.addedNodes;
-        notifyObserved(removedNodes, DISCONNECTED, wmout, wmin);
-        notifyObserved(addedNodes, CONNECTED, wmin, wmout);
+        notifyObserved(removedNodes, 'disconnected', wmout, wmin);
+        notifyObserved(addedNodes, 'connected', wmin, wmout);
       }
     });
-    mo.observe(root, {
+    mo.observe(root || document, {
       subtree: true,
       childList: true
     });
@@ -105,7 +96,7 @@ self.uconnect = (function (exports) {
 
   exports.observe = observe;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
+  
 
   return exports;
 
