@@ -96,8 +96,6 @@ self.uconnect = (function (exports) {
 
   exports.observe = observe;
 
-  
-
   return exports;
 
 }({}));
