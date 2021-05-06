@@ -67,10 +67,24 @@ export const observe = (root, parse, CE, MO) => {
       notifyObserved(addedNodes, 'connected', wmin, wmout);
     }
   });
-  mo.observe(root || document, {subtree: true, childList: true});
+
+  mo.add = add;
+  mo.add(root || document);
+
+  const {attachShadow} = Element.prototype;
+  if (attachShadow)
+    Element.prototype.attachShadow = function (init) {
+      const sd = attachShadow.call(this, init);
+      mo.add(sd);
+      return sd;
+    };
 
   return {has, connect, disconnect, kill() { mo.disconnect(); }};
 };
+
+function add(node) {
+  this.observe(node, {subtree: true, childList: true});
+}
 
 function handleEvent(event) {
   if (event.type in this)

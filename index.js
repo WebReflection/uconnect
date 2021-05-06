@@ -76,10 +76,14 @@ self.uconnect = (function (exports) {
         notifyObserved(addedNodes, 'connected', wmin, wmout);
       }
     });
-    mo.observe(root || document, {
-      subtree: true,
-      childList: true
-    });
+    mo.add = add;
+    mo.add(root || document);
+    var attachShadow = Element.prototype.attachShadow;
+    if (attachShadow) Element.prototype.attachShadow = function (init) {
+      var sd = attachShadow.call(this, init);
+      mo.add(sd);
+      return sd;
+    };
     return {
       has: has,
       connect: connect,
@@ -89,6 +93,13 @@ self.uconnect = (function (exports) {
       }
     };
   };
+
+  function add(node) {
+    this.observe(node, {
+      subtree: true,
+      childList: true
+    });
+  }
 
   function handleEvent(event) {
     if (event.type in this) this[event.type](event);
